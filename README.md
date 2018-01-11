@@ -1,4 +1,4 @@
-# Kafka Stack Docker Compose
+# Kafka Docker Compose
 
 Replicates typical Kafka stack using docker compose.
 
