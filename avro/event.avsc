@@ -1,0 +1,30 @@
+{
+    "namespace": "com.example.avro",
+    "type": "record",
+    "name": "Event",
+    "fields": [
+        {"name": "children", "type": [{
+         "type": "array",
+         "items": {
+             "name": "Child",
+             "type": "record",
+             "fields": [
+                 {"name": "key", "type": "string"},
+                 {"name": "value", "type": "string"}
+             ]
+         }}, "null"],
+         "default": "null"
+        },
+        {"name": "event_id", "type": "string"},
+        {"name": "event_parent_id", "type": ["string", "null"], "default": "null"},
+        {"name": "event_record", "type": {
+             "name": "EventRecord",
+             "type": "record",
+             "fields": [
+                 {"name": "is_awesome", "type": "boolean"}
+             ]
+        }},
+        {"name": "some_array", "type": [{"type": "array", "items": "string"}, "null"], "default": "null"},
+        {"name": "created", "type": [{"type": "long", "logicalType": "timestamp-millis"}, "null"], "default": "null"}
+    ]
+}

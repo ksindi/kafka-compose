@@ -1,0 +1,9 @@
+{
+  "event_id": "abcd1234",
+  "children": [{"key": "foo", "value": "bar"}],
+  "event_record": {
+    "is_awesome": true
+  },
+  "some_array": ["baz"],
+  "created": 1234
+}

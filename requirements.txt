@@ -1,0 +1,2 @@
+avro_json_serializer==1.0.1
+six>=1.11.0
