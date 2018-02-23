@@ -10,7 +10,6 @@ import json
 import argparse
 
 import six
-
 import avro.schema
 from avro_json_serializer import AvroJsonSerializer
 if six.PY2:
