@@ -33,8 +33,8 @@ curl -X POST -H "Content-Type: application/vnd.kafka.avro.v1+json" \
     \"records\":
         [
             {
-              \"key\": $(python serialize.py ./avro/event.avsc examples/event.json | jq .event_id),
-              \"value\": $(python serialize.py ./avro/event.avsc examples/event.json)
+              \"key\": $(python utils/serialize.py ./examples/event.avsc ./examples/event.json | jq .event_id),
+              \"value\": $(python utils/serialize.py ./examples/event.avsc ./examples/event.json)
             }
         ]
   }" \

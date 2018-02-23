@@ -1,16 +1,9 @@
-"""Spark Streaming Twitter.
-
-spark-submit \
-  --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.0.2 \
-  process.py \
-  --zooke
-"""
 from __future__ import print_function
 
 import os
 import sys
 import json
-import argparse
+import tempfile
 
 from pyspark import Row
 from pyspark.conf import SparkConf
@@ -19,27 +12,29 @@ from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 IS_PY2 = sys.version_info < (3,)
-APP_NAME = 'TwitterStreamKafka'
-BATCH_DURATION = 1  # in seconds
-ZK_QUORUM = 'localhost:32181'
-GROUP_ID = 'spark-streaming-consumer'
-TOPICS = ['twitter']
-CHECKPOINT = '/tmp/%s' % APP_NAME
-STREAM_CONTEXT_TIMEOUT = 60  # seconds
-KAFKA_PARAMS = {"metadata.broker.list": 'localhost:29092'}
+
+config = {
+    k: os.getenv(k, default)
+    for k, default in [
+        ('KAFKA_BROKERS', '0.0.0.0:9092'),
+        ('KAFKA_CONSUMER_GROUP', 'python_consumer'),
+        ('KAFKA_CLIENT_ID', 'client_1'),
+        ('KAFKA_TOPICS', 'twitter'),
+        ('SPARK_APP_NAME', 'TwitterStreamKafka'),
+        ('STREAM_BATCH_DURATION', 1),  # seconds
+        ('STREAM_CONTEXT_TIMEOUT', 60),  # seconds
+        ('PYSPARK_PYTHON', 'python' if IS_PY2 else 'python3'),
+    ]
+}
+
+
+CHECKPOINT = tempfile.mkdtemp()
+KAFKA_PARAMS = {'metadata.broker.list': config['KAFKA_BROKERS']}
 SPARK_CONF = (SparkConf()
               .setMaster('local[2]')
-              .setAppName(APP_NAME))
+              .setAppName(config['SPARK_APP_NAME']))
 
 offsetRanges = []
-
-if not IS_PY2:
-    os.environ['PYSPARK_PYTHON'] = 'python3'
-
-
-def create_parser():
-    parser = argparse.ArgumentParser(description=APP_NAME)
-    return parser
 
 
 def get_session(spark_conf):
@@ -54,12 +49,12 @@ def get_session(spark_conf):
 
 def create_context():
     spark = get_session(SPARK_CONF)
-    ssc = StreamingContext(spark.sparkContext, BATCH_DURATION)
+    ssc = StreamingContext(spark.sparkContext, config['STREAM_BATCH_DURATION'])
     ssc.checkpoint(CHECKPOINT)
     # start offsets from beginning
     # won't work if we have a chackpoint
-    offsets = {TopicAndPartition(topic, 0): 0 for topic in TOPICS}
-    stream = KafkaUtils.createDirectStream(ssc, TOPICS, KAFKA_PARAMS, offsets)
+    offsets = {TopicAndPartition(topic, 0): 0 for topic in config['KAFKA_TOPICS']}
+    stream = KafkaUtils.createDirectStream(ssc, config['KAFKA_TOPICS'], KAFKA_PARAMS, offsets)
     main(stream)
     return ssc
 
@@ -76,8 +71,7 @@ def updateFunc(new_values, last_sum):
 
 def printOffsetRanges(rdd):
     for o in offsetRanges:
-        print("Offset range: %s %s %s %s" %
-              (o.topic, o.partition, o.fromOffset, o.untilOffset))
+        print("Offset range: %s %s %s %s" % (o.topic, o.partition, o.fromOffset, o.untilOffset))
 
 
 def get_hashtags(tweet):
@@ -101,7 +95,7 @@ def process(timestamp, rdd):
         sql = "SELECT word, COUNT(1) AS total FROM words GROUP BY word"
         word_count_df = spark.sql(sql)
         word_count_df.show()
-    except:
+    except Exception:
         pass
 
 
@@ -129,9 +123,6 @@ def main(stream):
                       .countByWindow(windowDuration=60, slideDuration=5)
                       .map(lambda x: ('Tweets total (1-min rolling): %s' % x)))
 
-    # Get authors
-    # authors = tweets.map(lambda tweet: tweet['user']['screen_name'])
-
     count_batch.union(count_windowed).pprint()
 
     (stream
@@ -144,17 +135,10 @@ def main(stream):
 
 
 if __name__ == '__main__':
-    import shutil
-    shutil.rmtree(CHECKPOINT)  # delete any checkpoints
-
-    parser = create_parser()
-    args = parser.parse_args()
-    print('Args: ', args)
-
     spark = get_session(SPARK_CONF)
     spark.sparkContext.setLogLevel('WARN')  # suppress spark logging
 
     ssc = StreamingContext.getOrCreate(CHECKPOINT, create_context)
     ssc.start()
-    ssc.awaitTermination(timeout=STREAM_CONTEXT_TIMEOUT)
+    ssc.awaitTermination(timeout=config['STREAM_CONTEXT_TIMEOUT'])
     ssc.stop()

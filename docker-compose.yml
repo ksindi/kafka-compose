@@ -75,14 +75,15 @@ services:
       bash -c 'echo Waiting for kafka-schema-registry to be ready... && \
       cub sr-ready kafka-schema-registry 8081 20 && \
       for item in "key" "event"; do curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-        --data "{\"schema\": \"$$(python /home/app/stringify.py /home/app/avro/$$item.avsc)\" }" \
+        --data "{\"schema\": \"$$(python /home/app/utils/stringify.py /home/app/examples/$$item.avsc)\" }" \
         http://kafka-schema-registry:8081/subjects/$$item/versions; done &&
       sleep infinity'
     environment:
       KAFKA_BROKER_ID: ignored
       KAFKA_ZOOKEEPER_CONNECT: ignored
     volumes:
-      - ./:/home/app/
+      - ./utils:/home/app/utils
+      - ./examples:/home/app/examples
     networks:
       - default
 
@@ -97,52 +98,6 @@ services:
       - kafka-schema-registry
     networks:
       - default
-
-  # Note: ready when "docker logs kafka-connect | grep started"
-  kafka-connect:
-    image: confluentinc/cp-kafka-connect:${CP_STACK_VERSION}
-    ports:
-      - 8083:8083
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: "kafka-1:29092"
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: compose-connect-group
-      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
-      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
-      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
-      CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://kafka-schema-registry:8081'
-      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://kafka-schema-registry:8081'
-      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
-      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
-      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-      # best practices to set plugin path so no dependency version conflicts
-      CONNECT_PLUGIN_PATH: /usr/local/share/kafka/plugins
-    #volumes:
-    #  - ./path/to/mypackage-1.0-SNAPSHOT-package/share/java/mypackage:/usr/local/share/kafka/plugins/mypackage
-    networks:
-      - default
-    depends_on:
-      - zookeeper-1
-      - kafka-1
-      - kafka-schema-registry
-
-  kafka-connect-ui:
-    image: landoop/kafka-connect-ui:0.9.3
-    hostname: kafka-connect-ui
-    ports:
-      - "8002:8000"
-    environment:
-      CONNECT_URL: "http://kafka-connect:8083/"
-      PROXY: "true"
-    depends_on:
-      - kafka-connect
 
 networks:
     default:

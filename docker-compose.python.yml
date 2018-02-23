@@ -1,5 +1,6 @@
 version: '3'
 services:
+  # Need to override kafka settings
   # https://stackoverflow.com/a/44387281/690430
   kafka-1:
     image: confluentinc/cp-kafka:${CP_STACK_VERSION}

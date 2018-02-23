@@ -30,4 +30,5 @@ RUN chown -R app: ${dir}
 # App setup
 USER app
 
+ENTRYPOINT []
 CMD true
