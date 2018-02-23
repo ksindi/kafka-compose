@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Spark Streaming Twitter.
 
 spark-submit \
   --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.0.2 \
   process.py \
   --zooke
-
 """
 from __future__ import print_function
 
@@ -133,7 +130,7 @@ def main(stream):
                       .map(lambda x: ('Tweets total (1-min rolling): %s' % x)))
 
     # Get authors
-    authors = tweets.map(lambda tweet: tweet['user']['screen_name'])
+    # authors = tweets.map(lambda tweet: tweet['user']['screen_name'])
 
     count_batch.union(count_windowed).pprint()
 
@@ -147,7 +144,8 @@ def main(stream):
 
 
 if __name__ == '__main__':
-    import shutil; shutil.rmtree(CHECKPOINT)  # delete any checkpoints
+    import shutil
+    shutil.rmtree(CHECKPOINT)  # delete any checkpoints
 
     parser = create_parser()
     args = parser.parse_args()

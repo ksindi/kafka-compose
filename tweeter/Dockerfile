@@ -19,11 +19,11 @@ RUN apk add --no-cache librdkafka \
 WORKDIR ${dir}
 
 # App dependencies
-RUN pip3 install confluent-kafka[avro] \
-  avro_json_serializer
+RUN pip3 install confluent-kafka \
+ tweepy
 
 # File upload
-COPY consumer.py ${dir}/
+COPY producer.py ${dir}/
 
 RUN chown -R app: ${dir}
 

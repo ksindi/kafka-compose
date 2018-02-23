@@ -1,0 +1,10 @@
+version: '3'
+services:
+  pyspark:
+    image: jupyter/pyspark-notebook
+    depends_on:
+      - kafka-1
+    ports:
+      - 18888:8888
+networks:
+    default:
