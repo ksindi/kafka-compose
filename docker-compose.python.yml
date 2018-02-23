@@ -1,0 +1,30 @@
+version: '3'
+services:
+  # https://stackoverflow.com/a/44387281/690430
+  kafka-1:
+    image: confluentinc/cp-kafka:${CP_STACK_VERSION}
+    depends_on:
+      - zookeeper-1
+    ports:
+      - 9092:9092
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:22181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092,PLAINTEXT_HOST://localhost:9092
+      # Following line is needed for Kafka versions 0.11+
+      # in case you run less than 3 Kafka brokers in your
+      # cluster because the broker config
+      # `offsets.topic.replication.factor` (default: 3)
+      # is now enforced upon topic creation
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # suppress verbosity
+      # https://github.com/confluentinc/cp-docker-images/blob/master/debian/kafka/include/etc/confluent/docker/log4j.properties.template
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    networks:
+      - default
+
+networks:
+    default:

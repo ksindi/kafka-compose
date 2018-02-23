@@ -1,0 +1,33 @@
+version: '3'
+services:
+  kafka-rest-proxy:
+    image: confluent/rest-proxy:${CP_STACK_VERSION}
+    depends_on:
+      - zookeeper-1
+      - kafka-1
+      - kafka-schema-registry
+    ports:
+      - 8082:8082
+    environment:
+      KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper-1:22181
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
+      KAFKA_REST_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      KAFKA_REST_HOST_NAME: kafka-rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: kafka-1:29092
+    networks:
+      - default
+
+  kafka-topics-ui:
+    image: landoop/kafka-topics-ui:latest
+    ports:
+      - 8000:8000
+    environment:
+      KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
+      PROXY: "true"
+    depends_on:
+      - kafka-rest-proxy
+    networks:
+      - default
+
+networks:
+    default:

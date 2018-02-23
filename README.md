@@ -2,18 +2,10 @@
 
 Replicates typical Kafka stack using docker compose.
 
-## Stack version
-
-- Zookeeper version: 3.4.9
-- Kafka version: 1.0.0 (Confluent 4.0.0)
-- Kafka Schema Registry: Confluent 4.0.0
-- Kafka Schema Registry UI: 0.9.3
-- Kafka Rest Proxy: Confluent 4.0.0
-- Kafka Topics UI: 0.9.3
-
 ## Running
 
 ```bash
+export CP_STACK_VERSION=4.0.0
 docker-compose up
 ```
 
@@ -21,8 +13,13 @@ docker-compose up
 
 - Kafka Topics UI: http://localhost:8000
 - Kafka Schema Registry UI: http://localhost:8001
+- Kafka Connect UI: http://localhost:8002
 
 ## Confluent Kafka REST Proxy
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.rest-proxy.yml up
+```
 
 ### Producing messages
 
@@ -55,6 +52,17 @@ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
 # consume messages with created consumer instance
 curl -X GET -H "Accept: application/vnd.kafka.avro.v1+json" \
   http://localhost:8082/consumers/my_avro_consumer/instances/my_avro_consumer_instance_1/topics/event 2>/dev/null | jq .
+```
+
+## Python Consumer
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.python.yml up
+```
+
+Start the consumer:
+```bash
+cd consumer/ && make run
 ```
 
 ## License
