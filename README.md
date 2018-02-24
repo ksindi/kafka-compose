@@ -1,4 +1,4 @@
-# Kafka Docker Compose
+# Kafka Compose
 
 Replicates typical Kafka stack using docker compose.
 
@@ -62,7 +62,7 @@ docker-compose -f docker-compose.yml -f docker-compose.python.yml up
 
 Start the consumer:
 ```bash
-cd consumer/ && make run
+cd python/ && make run
 ```
 
 ## License

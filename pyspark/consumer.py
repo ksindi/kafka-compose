@@ -51,8 +51,7 @@ def create_context():
     spark = get_session(SPARK_CONF)
     ssc = StreamingContext(spark.sparkContext, config['STREAM_BATCH_DURATION'])
     ssc.checkpoint(CHECKPOINT)
-    # start offsets from beginning
-    # won't work if we have a chackpoint
+    # start offsets from beginning won't work if we have a chackpoint
     offsets = {TopicAndPartition(topic, 0): 0 for topic in config['KAFKA_TOPICS']}
     stream = KafkaUtils.createDirectStream(ssc, config['KAFKA_TOPICS'], KAFKA_PARAMS, offsets)
     main(stream)

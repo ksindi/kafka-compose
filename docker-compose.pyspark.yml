@@ -1,10 +1,20 @@
 version: '3'
 services:
+  tweeter:
+    image: jupyter/pyspark-notebook
+    build:
+    depends_on:
+      - kafka-1
+    ports:
+      - 18888:8888
   pyspark:
     image: jupyter/pyspark-notebook
     depends_on:
       - kafka-1
     ports:
       - 18888:8888
+    volumes:
+      - ./utils:/home/app/utils
+      - ./examples:/home/app/examples
 networks:
     default:
